@@ -430,7 +430,7 @@ function setupTimebar() {
   });
 
   // Afficher le slider
-  document.getElementById('timebar').classList.add('on');
+  document.getElementById('timeline').classList.add('on');
 }
 
 function startPlay() {
