@@ -176,3 +176,43 @@ window.GROUNDWATER_EXPLOITATION_YEARLY = GROUNDWATER_EXPLOITATION_YEARLY;
 window.BOTTLED_WATER_PRODUCTION_YEARLY = BOTTLED_WATER_PRODUCTION_YEARLY;
 window.BOTTLED_WATER_BRANDS_COUNT_YEARLY = BOTTLED_WATER_BRANDS_COUNT_YEARLY;
 window.SALEM_SURFACE_YEARLY = SALEM_SURFACE_YEARLY;
+// ===== Faits révélateurs (7 faits avec détails et sources) =====
+const FACTS = [
+  {
+    num: "-17 cm",
+    lbl: "انخفاض مياه تونس منذ 2004 (قمر صناعي NASA)",
+    detail: "القمر الصناعي GRACE-FO يقيس فقدان الكتلة المائية (المياه الجوفية + السدود + الرطوبة). الانخفاض مستمر منذ 2010 دون ارتداد: نحن نضخ أسرع من ما تعيد تعبئته المطر.<br><br>المصدر: <a href='https://grace.jpl.nasa.gov/data/get-data/jpl-global-mascons/' target='_blank'>NASA GRACE‑FO Mascons</a>"
+  },
+  {
+    num: "30%",
+    lbl: "نسبة فقدان الماء في شبكة التوزيع",
+    detail: "rendement AEP = 70,3% → 30% من الماء يضيع في الأنابيب ! إصلاح ذلك = توفير 86 م³/ سنة، ما يعادل 4 محطات تحلية.<br><br>المصدر: <a href='https://www.onagri.nat.tn/' target='_blank'>ONAGRI – bilan secteur eau 2017</a>"
+  },
+  {
+    num: "81%",
+    lbl: "نسبة استهلاك الزراعة من الموارد المائية",
+    detail: "الزراعة تستهلك 81% من المياه لتنتج 37% فقط من القيمة المضافة الزراعية. توسع مساحة السقي ×7 : 60,000 هكتار (1960) → 420,000 هكتار (2012).<br><br>المصدر: <a href='https://faostat.fao.org/' target='_blank'>FAO AQUASTAT</a>"
+  },
+  {
+    num: "22/42",
+    lbl: "العلامات التجارية للمياه المعلبة المعروفة",
+    detail: "من أصل 42 علامة تجارية تم رصدها في السوق، 22 فقط لها مصدر معروف وموقع موثق (الباقي غير مؤكد أو مياه شرب معالجة).<br><br>المصدر: <a href='https://www.marhp.gov.tn/' target='_blank'>الوزارة الفلاحة والموارد البحرية – دراسة 2017</a>"
+  },
+  {
+    num: "5",
+    lbl: "محطات تحلية مياه البحر المخطط لها",
+    detail: "جربة، سوسة، زرات، صفاقس، قرقنة. كل محطة تنتج بين 50 و 100 م³/ يوم.	total المحتمل: ~300 م³/ سنة.<br><br>المصدر: <a href='https://www.steg.com.tw/' target='_blank'>STEG – مشاريع التحلية 2022</a>"
+  },
+  {
+    num: "×2.8",
+    lbl: "معدل استغلال الخزان الجوفي الجنوبي (SASS)",
+    detail: "الخزان الجوفي الشمالي الغربي (النشالينTerminale + الضخالي Intercalaire) مستغل بنسبة 280% من تجديده الطبيعي → ماء أحفوري يزيد عمره عن 10,000 سنة.<br><br>المصدر: <a href='https://www.un-igrac.org/' target='_blank'>IGRAC – Groundwater Resources of the World</a>"
+  },
+  {
+    num: "-28%",
+    lbl: "انخفاض الموارد المائية المتوقعة بحلول 2050",
+    detail: "السيناريو الرسمي (+2°C) يتوقع انخفاضاً بنسبة 28% في الموارد المائية السطحية والجوفية الضحلة بحلول سنة 2050.<br><br>المصدر: <a href='https://www.marhp.gov.tn/' target='_blank'>الوزارة الفلاحة والموارد البحرية – استراتيجية المياه 2050</a>"
+  }
+];
+// Export for use in app.js
+window.FACTS = FACTS;
