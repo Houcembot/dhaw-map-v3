@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>وينو الماء؟ — قصة الماء في تونس</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --fg: #212529;
+    --muted: #6c757d;
+    --primary: #0d6efd;
+    --success: #198754;
+    --info: #0dcaf0;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #212529;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Noto Sans Arabic';
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.6;
+  }
+  h1, h2, h3 { margin: 1rem 0; }
+  p { margin: 1rem 0; }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  #map { height: 70vh; width: 100%; }
+  .story { 
+    max-width: 800px; 
+    margin: 0 auto; 
+    padding: 2rem;
+    background: var(--light);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+  .story.hidden { display: none; }
+  .fact { 
+    background: var(--white); 
+    border-left: 4px solid var(--primary);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .fact.numerical { 
+    font-size: 2rem; 
+    font-weight: bold;
+    text-align: center;
+    padding: 2rem;
+  }
+  .controls { 
+    position: fixed; 
+    top: 1rem; 
+    right: 1rem; 
+    z-index: 1000;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .btn { 
+    padding: 0.5rem 1rem; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-secondary { background: var(--light); color: var(--fg); border: 1px solid var(--muted); }
+  .lang-toggle { 
+    position: fixed; 
+    top: 1rem; 
+    left: 1rem; 
+    z-index: 1000;
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="controls">
+  <button id="btn-play" class="btn btn-primary">▶ تشغيل</button>
+  <button id="btn-reset" class="btn btn-secondary">إعادة تعيين</button>
+</div>
+<div class="lang-toggle">
+  <button id="lang-ar" class="btn btn-active">العربية</button>
+  <button id="lang-fr" class="btn">Français</button>
+</div>
+
+<div id="story" class="story">
+  <!-- Content will be injected by JS -->
+</div>
+
+<script>
+  // Data placeholders - will be filled from site_data.js
+  let map, storySections = [];
+  let currentSection = 0;
+  let playing = false;
+  let playTimer = null;
+  let startYear = 1960;
+  let endYear = 2020;
+  let currentYear = startYear;
+
+  // Initialize map
+  function initMap() {
+    map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          'osm': {
+            type: 'raster',
+            tiles: ['https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        },
+        layers: [
+          { id: 'background', type: 'background', paint: { 'background-color': '#f0f0f0' } },
+          { id: 'osm-layer', type: 'raster', source: 'osm', paint: { 'raster-opacity': 0.8 } }
+        ]
+      },
+      center: [9.5, 34.0],
+      zoom: 6,
+      minZoom: 5,
+      maxZoom: 12
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+  }
+
+  // Load data and initialize story
+  async function init() {
+    await loadData();
+    initMap();
+    buildStory();
+    setupScroll();
+    setupControls();
+    showSection(0);
+  }
+
+  async function loadData() {
+    // In reality, we would fetch site_data.js but for now we'll use inline data
+    // Since we can't fetch external JS easily in this snippet, we'll define minimal data
+    window.BARRAGES = [
+      {nom:"Sidi Salem", lat:36.4833, lon:9.1667, cap:762, gouv:"Béja"}
+    ];
+    window.FACTS = [
+      {num:"-17 cm", lbl:"انخفاض مياه تونس منذ 2004", detail:"تفصيل..."}
+    ];
+    // Minimal data for demo
+  }
+
+  function buildStory() {
+    const storyDiv = document.getElementById('story');
+    storySections = [
+      {
+        title: "المقدمة",
+        content: "تحكي هذه القصة عن water in Tunisia من 1960 إلى 2020.",
+        fact: {num: "1960-2020", lbl:"فترة الدراسة"},
+        callback: () => { /* show intro */ }
+      },
+      {
+        title: "الهطول المطري",
+        content: "الهطول السنوي المتوسط في تونس هو حوالي 36 مليار متر مكعب.",
+        fact: {num: "36 ب م³", lbl:"متوسط الهطول السنوي"},
+        callback: () => { /* highlight rainfall */ }
+      },
+      // More sections...
+    ];
+
+    storyDiv.innerHTML = storySections.map((sec, idx) => `
+      <div class="story" id="section-${idx}" ${idx===0?'':'class="hidden"'}>
+        <h2>${sec.title}</h2>
+        <p>${sec.content}</p>
+        ${sec.fact ? `<div class="fact numerical">${sec.fact.num}<br>${sec.fact.lbl}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function setupScroll() {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          onScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+  }
+
+  function onScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const windowHeight = window.innerHeight;
+    const storyElements = document.querySelectorAll('.story');
+    
+    let activeIndex = 0;
+    storyElements.forEach((el, idx) => {
+      const rect = el.getBoundingClientRect();
+      const top = rect.top + scrollTop;
+      const height = el.offsetHeight;
+      if (scrollTop >= top - windowHeight/3 && scrollTop < top + height - windowHeight/3) {
+        activeIndex = idx;
+      }
+    });
+    
+    if (activeIndex !== currentSection) {
+      showSection(activeIndex);
+      currentSection = activeIndex;
+    }
+  }
+
+  function showSection(index) {
+    document.querySelectorAll('.story').forEach((el, i) => {
+      el.classList.toggle('hidden', i !== index);
+    });
+    if (storySections[index].callback) {
+      storySections[index].callback();
+    }
+  }
+
+  function setupControls() {
+    document.getElementById('btn-play').addEventListener('click', () => {
+      playing = !playing;
+      document.getElementById('btn-play').textContent = playing ? '⏸ إيقاف' : '▶ تشغيل';
+      if (playing) startPlayback();
+      else stopPlayback();
+    });
+    document.getElementById('btn-reset').addEventListener('click', resetTimeline);
+    document.getElementById('lang-ar').addEventListener('click', () => setLanguage('ar'));
+    document.getElementById('lang-fr').addEventListener('click', () => setLanguage('fr'));
+  }
+
+  function startPlayback() {
+    playTimer = setInterval(() => {
+      currentYear++;
+      if (currentYear > endYear) {
+        currentYear = startYear;
+        resetTimeline();
+      }
+      updateTimeline(currentYear);
+    }, 500); // 2 years per second
+  }
+
+  function stopPlayback() {
+    if (playTimer) {
+      clearInterval(playTimer);
+      playTimer = null;
+    }
+  }
+
+  function resetTimeline() {
+    currentYear = startYear;
+    updateTimeline(currentYear);
+    stopPlayback();
+    document.getElementById('btn-play').textContent = '▶ تشغيل';
+    playing = false;
+  }
+
+  function updateTimeline(year) {
+    // Update map layers based on year
+    // For demo, just update a text element
+    const yearEl = document.getElementById('current-year');
+    if (yearEl) yearEl.textContent = year;
+    // In reality, we would filter data by year and update map layers
+    console.log(`Year: ${year}`);
+  }
+
+  function setLanguage(lang) {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.getElementById('lang-ar').classList.toggle('btn-active', lang === 'ar');
+    document.getElementById('lang-fr').classList.toggle('btn-active', lang === 'fr');
+    // Would also swap text content
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>
+</body>
+</html>
