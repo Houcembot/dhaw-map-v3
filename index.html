@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>وينو الماء؟ — قصة الماء في تونس</title>
+<!-- MapLibre GL CSS -->
+<link href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<!-- Google Fonts: Noto Sans Arabic + Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f8f9fa;
@@ -16,272 +22,246 @@
     --danger: #dc3545;
     --light: #f8f9fa;
     --dark: #212529;
+    --white: #ffffff;
+    --line: #dee2e6;
+    --cyan: #06b6d4;
+    --blue: #3b82f6;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Noto Sans Arabic';
+    font-family: 'Inter', 'Noto Sans Arabic', system-ui, sans-serif;
     background: var(--bg);
     color: var(--fg);
     line-height: 1.6;
+    overflow-x: hidden;
   }
-  h1, h2, h3 { margin: 1rem 0; }
+  h1, h2, h3 { margin: 1rem 0; font-weight: 600; }
   p { margin: 1rem 0; }
   a { color: var(--primary); text-decoration: none; }
   a:hover { text-decoration: underline; }
   #map { height: 70vh; width: 100%; }
-  .story { 
-    max-width: 800px; 
-    margin: 0 auto; 
+  .story {
+    max-width: 800px;
+    margin: 0 auto;
     padding: 2rem;
-    background: var(--light);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     margin-bottom: 2rem;
+    border: 1px solid var(--line);
   }
   .story.hidden { display: none; }
-  .fact { 
-    background: var(--white); 
+  .fact {
+    background: var(--white);
     border-left: 4px solid var(--primary);
-    padding: 1rem;
-    margin: 1rem 0;
-    border-radius: 0 4px 4px 0;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-  .fact.numerical { 
-    font-size: 2rem; 
-    font-weight: bold;
+  .fact.numerical {
+    font-size: 2.5rem;
+    font-weight: 700;
     text-align: center;
     padding: 2rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
   }
-  .controls { 
-    position: fixed; 
-    top: 1rem; 
-    right: 1rem; 
+  .controls {
+    position: fixed;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    gap: 0.75rem;
+    background: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    border: 1px solid var(--line);
+  }
+  .btn {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: #0b5ed7; transform: translateY(-1px); }
+  .btn-secondary { background: var(--light); color: var(--fg); border: 1px solid var(--muted); }
+  .btn-secondary:hover { background: #e9ecef; }
+  .lang-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
     z-index: 1000;
     display: flex;
     gap: 0.5rem;
   }
-  .btn { 
-    padding: 0.5rem 1rem; 
-    border: none; 
-    border-radius: 4px; 
-    cursor: pointer;
-    font-weight: 600;
+  .lang-toggle .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
   }
-  .btn-primary { background: var(--primary); color: white; }
-  .btn-secondary { background: var(--light); color: var(--fg); border: 1px solid var(--muted); }
-  .lang-toggle { 
-    position: fixed; 
-    top: 1rem; 
-    left: 1rem; 
+  .lang-toggle .btn-active {
+    background: var(--primary);
+    color: white;
+  }
+  .timeline-container {
+    position: fixed;
+    bottom: 5.5rem;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1000;
+    background: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border: 1px solid var(--line);
+    min-width: 300px;
+    text-align: center;
+  }
+  .timeline-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .timeline-year {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .slider-wrapper {
+    width: 100%;
+    max-width: 400px;
+    margin: 0.5rem auto 0;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary);
+  }
+  .facts-panel {
+    position: fixed;
+    top: 4rem;
+    right: 1rem;
+    z-index: 900;
+    width: min(340px, calc(100vw - 2rem));
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border: 1px solid var(--line);
+    padding: 1rem;
+  }
+  .facts-panel.hidden { display: none; }
+  .fact-title {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary);
+  }
+  .fact-item {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .fact-item:hover {
+    transform: translateX(-4px);
+  }
+  .fact-num {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--danger);
+    line-height: 1.2;
+  }
+  .fact-lbl {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+  .fact-detail {
+    display: none;
+    font-size: 0.8rem;
+    color: var(--fg);
+    line-height: 1.5;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line);
+  }
+  .fact-item.open .fact-detail { display: block; }
+  .fact-detail a { color: var(--info); font-weight: 500; }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    margin: 0.25rem 0;
+    cursor: pointer;
+  }
+  .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .maplibregl-popup-content {
+    padding: 0.75rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    max-width: 280px;
+  }
+  .maplibregl-popup-close-button {
+    font-size: 1.25rem;
+    padding: 0.25rem 0.5rem;
+  }
+  @media (max-width: 768px) {
+    #map { height: 50vh; }
+    .controls { bottom: 1rem; padding: 0.5rem 1rem; }
+    .timeline-container { bottom: 5rem; min-width: auto; width: calc(100vw - 2rem); }
+    .facts-panel { top: 3.5rem; right: 0.5rem; left: 0.5rem; width: auto; max-height: 30vh; }
+    .lang-toggle { top: 0.5rem; left: 0.5rem; }
   }
 </style>
 </head>
 <body>
 <div id="map"></div>
+
+<div class="lang-toggle">
+  <button id="lang-ar" class="btn btn-active">العربية</button>
+  <button id="lang-fr" class="btn">Français</button>
+</div>
+
 <div class="controls">
   <button id="btn-play" class="btn btn-primary">▶ تشغيل</button>
   <button id="btn-reset" class="btn btn-secondary">إعادة تعيين</button>
 </div>
-<div class="lang-toggle">
-  <button id="lang-ar" class="btn btn-active">العربية</button>
-  <button id="lang-fr" class="btn">Français</button>
+
+<div class="timeline-container" id="timeline">
+  <div class="timeline-label" id="timeline-label">السنة / Année</div>
+  <div class="timeline-year" id="current-year">1960</div>
+  <div class="slider-wrapper">
+    <input type="range" id="slider-year" min="1960" max="2020" value="1960" step="1">
+  </div>
+</div>
+
+<div class="facts-panel" id="facts-panel">
+  <div class="fact-title" id="facts-title">💡 حقائق رئيسية / Faits clés</div>
+  <div id="facts-list"></div>
 </div>
 
 <div id="story" class="story">
   <!-- Content will be injected by JS -->
 </div>
 
-<script>
-  // Data placeholders - will be filled from site_data.js
-  let map, storySections = [];
-  let currentSection = 0;
-  let playing = false;
-  let playTimer = null;
-  let startYear = 1960;
-  let endYear = 2020;
-  let currentYear = startYear;
-
-  // Initialize map
-  function initMap() {
-    map = new maplibregl.Map({
-      container: 'map',
-      style: {
-        version: 8,
-        sources: {
-          'osm': {
-            type: 'raster',
-            tiles: ['https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            attribution: '&copy; OpenStreetMap contributors'
-          }
-        },
-        layers: [
-          { id: 'background', type: 'background', paint: { 'background-color': '#f0f0f0' } },
-          { id: 'osm-layer', type: 'raster', source: 'osm', paint: { 'raster-opacity': 0.8 } }
-        ]
-      },
-      center: [9.5, 34.0],
-      zoom: 6,
-      minZoom: 5,
-      maxZoom: 12
-    });
-
-    map.addControl(new maplibregl.NavigationControl(), 'top-right');
-  }
-
-  // Load data and initialize story
-  async function init() {
-    await loadData();
-    initMap();
-    buildStory();
-    setupScroll();
-    setupControls();
-    showSection(0);
-  }
-
-  async function loadData() {
-    // In reality, we would fetch site_data.js but for now we'll use inline data
-    // Since we can't fetch external JS easily in this snippet, we'll define minimal data
-    window.BARRAGES = [
-      {nom:"Sidi Salem", lat:36.4833, lon:9.1667, cap:762, gouv:"Béja"}
-    ];
-    window.FACTS = [
-      {num:"-17 cm", lbl:"انخفاض مياه تونس منذ 2004", detail:"تفصيل..."}
-    ];
-    // Minimal data for demo
-  }
-
-  function buildStory() {
-    const storyDiv = document.getElementById('story');
-    storySections = [
-      {
-        title: "المقدمة",
-        content: "تحكي هذه القصة عن water in Tunisia من 1960 إلى 2020.",
-        fact: {num: "1960-2020", lbl:"فترة الدراسة"},
-        callback: () => { /* show intro */ }
-      },
-      {
-        title: "الهطول المطري",
-        content: "الهطول السنوي المتوسط في تونس هو حوالي 36 مليار متر مكعب.",
-        fact: {num: "36 ب م³", lbl:"متوسط الهطول السنوي"},
-        callback: () => { /* highlight rainfall */ }
-      },
-      // More sections...
-    ];
-
-    storyDiv.innerHTML = storySections.map((sec, idx) => `
-      <div class="story" id="section-${idx}" ${idx===0?'':'class="hidden"'}>
-        <h2>${sec.title}</h2>
-        <p>${sec.content}</p>
-        ${sec.fact ? `<div class="fact numerical">${sec.fact.num}<br>${sec.fact.lbl}</div>` : ''}
-      </div>
-    `).join('');
-  }
-
-  function setupScroll() {
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          onScroll();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    });
-  }
-
-  function onScroll() {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const windowHeight = window.innerHeight;
-    const storyElements = document.querySelectorAll('.story');
-    
-    let activeIndex = 0;
-    storyElements.forEach((el, idx) => {
-      const rect = el.getBoundingClientRect();
-      const top = rect.top + scrollTop;
-      const height = el.offsetHeight;
-      if (scrollTop >= top - windowHeight/3 && scrollTop < top + height - windowHeight/3) {
-        activeIndex = idx;
-      }
-    });
-    
-    if (activeIndex !== currentSection) {
-      showSection(activeIndex);
-      currentSection = activeIndex;
-    }
-  }
-
-  function showSection(index) {
-    document.querySelectorAll('.story').forEach((el, i) => {
-      el.classList.toggle('hidden', i !== index);
-    });
-    if (storySections[index].callback) {
-      storySections[index].callback();
-    }
-  }
-
-  function setupControls() {
-    document.getElementById('btn-play').addEventListener('click', () => {
-      playing = !playing;
-      document.getElementById('btn-play').textContent = playing ? '⏸ إيقاف' : '▶ تشغيل';
-      if (playing) startPlayback();
-      else stopPlayback();
-    });
-    document.getElementById('btn-reset').addEventListener('click', resetTimeline);
-    document.getElementById('lang-ar').addEventListener('click', () => setLanguage('ar'));
-    document.getElementById('lang-fr').addEventListener('click', () => setLanguage('fr'));
-  }
-
-  function startPlayback() {
-    playTimer = setInterval(() => {
-      currentYear++;
-      if (currentYear > endYear) {
-        currentYear = startYear;
-        resetTimeline();
-      }
-      updateTimeline(currentYear);
-    }, 500); // 2 years per second
-  }
-
-  function stopPlayback() {
-    if (playTimer) {
-      clearInterval(playTimer);
-      playTimer = null;
-    }
-  }
-
-  function resetTimeline() {
-    currentYear = startYear;
-    updateTimeline(currentYear);
-    stopPlayback();
-    document.getElementById('btn-play').textContent = '▶ تشغيل';
-    playing = false;
-  }
-
-  function updateTimeline(year) {
-    // Update map layers based on year
-    // For demo, just update a text element
-    const yearEl = document.getElementById('current-year');
-    if (yearEl) yearEl.textContent = year;
-    // In reality, we would filter data by year and update map layers
-    console.log(`Year: ${year}`);
-  }
-
-  function setLanguage(lang) {
-    document.documentElement.lang = lang;
-    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    document.getElementById('lang-ar').classList.toggle('btn-active', lang === 'ar');
-    document.getElementById('lang-fr').classList.toggle('btn-active', lang === 'fr');
-    // Would also swap text content
-  }
-
-  // Initialize when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-</script>
+<!-- Load data first, then app -->
+<script src="data/site_data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
